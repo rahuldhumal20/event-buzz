@@ -1,0 +1,21 @@
+# ===============================
+# Backend Dependencies
+# ===============================
+express
+mongoose
+jsonwebtoken
+bcryptjs
+cors
+dotenv
+pdfkit
+qrcode
+
+# ===============================
+# Frontend Dependencies
+# ===============================
+react
+react-dom
+react-router-dom
+axios
+react-bootstrap
+bootstrap
