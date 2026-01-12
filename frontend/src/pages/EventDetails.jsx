@@ -42,6 +42,12 @@ export default function EventDetails() {
         attendeeName: isAdmin() ? attendeeName : undefined
       });
 
+      alert(
+        isAdmin()
+          ? `Ticket booked successfully for ${attendeeName}`
+          : "Ticket booked successfully!"
+      );
+
       navigate("/my-bookings");
     } catch (err) {
       setError(err.response?.data?.message || "Booking failed");
