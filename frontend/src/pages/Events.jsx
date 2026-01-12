@@ -14,7 +14,7 @@ export default function Events() {
   }, []);
 
   const fetchEvents = async () => {
-  const res = await API.get("/api/events");
+  const res = await API.get("/events");
   setEvents(res.data);
 };
 
