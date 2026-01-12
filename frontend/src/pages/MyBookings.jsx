@@ -26,11 +26,25 @@ export default function MyBookings() {
   };
 
   const cancelHandler = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this ticket?")) return;
+  if (!window.confirm("Are you sure you want to cancel this ticket?")) return;
 
-    await API.put(`/bookings/cancel/${id}`);
-    fetchBookings();
+  // 🔥 Optimistic UI update
+  setBookings((prev) =>
+    prev.map((b) =>
+      b._id === id ? { ...b, status: "CANCELLED" } : b
+    )
+  );
+
+  try {
+      await API.put(`/bookings/cancel/${id}`);
+    } catch (error) {
+      alert("Cancel failed. Please refresh.");
+
+      // rollback if failed
+      fetchBookings();
+    }
   };
+
 
 const downloadHandler = async (id) => {
   const token = localStorage.getItem("token");

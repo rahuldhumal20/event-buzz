@@ -21,8 +21,33 @@ export default function EventDetails() {
   const [event, setEvent] = useState(null);
   const [attendeeName, setAttendeeName] = useState("");
   const [qty, setQty] = useState(1);
-const [error, setError] = useState("");
-const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const bookHandler = async () => {
+    if (qty < 1) {
+      setError("Quantity must be at least 1");
+      return;
+    }
+
+    if (isAdmin() && attendeeName.trim() === "") {
+      setError("Attendee name is required for admin booking");
+      return;
+    }
+
+    try {
+      await API.post("/bookings/book", {
+        eventId: event._id,
+        quantity: qty,
+        attendeeName: isAdmin() ? attendeeName : undefined
+      });
+
+      navigate("/my-bookings");
+    } catch (err) {
+      setError(err.response?.data?.message || "Booking failed");
+    }
+  };
+
 
 
 
@@ -82,30 +107,29 @@ const [success, setSuccess] = useState("");
               </Form.Group>
             )}
 
+              {event.availableTickets === 0 ? (
+                <Button variant="secondary" disabled className="w-100">
+                  Sold Out
+                </Button>
+              ) : isLoggedIn() ? (
+                <Button
+                  variant="primary"
+                  className="w-100"
+                  onClick={bookHandler}   // 🔥 IMPORTANT
+                >
+                  Book Ticket
+                </Button>
+              ) : (
+                <Button
+                  as={Link}
+                  to="/login"
+                  variant="secondary"
+                  className="w-100"
+                >
+                  Login to Book
+                </Button>
+              )}
 
-            {event.availableTickets === 0 ? (
-              <Button variant="secondary" disabled>
-                Sold Out
-              </Button>
-            ) : isLoggedIn() ? (
-              <Button
-                as={Link}
-                to={`/book/${event._id}`}
-                variant="primary"
-                className="w-100"
-              >
-                Book Ticket
-              </Button>
-            ) : (
-              <Button
-                as={Link}
-                to="/login"
-                variant="secondary"
-                className="w-100"
-              >
-                Login to Book
-              </Button>
-            )}
           </Card>
         </Col>
       </Row>
