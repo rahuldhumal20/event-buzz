@@ -14,9 +14,10 @@ export default function Events() {
   }, []);
 
   const fetchEvents = async () => {
-    const res = await API.get("/events");
-    setEvents(res.data);
-  };
+  const res = await API.get("/api/events");
+  setEvents(res.data);
+};
+
 
   return (
     <Container className="mt-4">
