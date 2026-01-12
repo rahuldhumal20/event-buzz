@@ -1,0 +1,35 @@
+/* Global light gradient background */
+body {
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #fff5f8 0%,
+    #f8fbff 50%,
+    #ffffff 100%
+  );
+  background-attachment: fixed;
+}
+
+/* Container cards look better on gradient */
+.card {
+  background-color: #ffffff;
+  border-radius: 14px;
+}
+
+/* Headings slightly bold */
+h1, h2, h3, h4 {
+  font-weight: 600;
+}
+@media (max-width: 576px) {
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  .card {
+    border-radius: 12px;
+  }
+}

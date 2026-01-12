@@ -1,0 +1,43 @@
+/* Event Card Hover Effect */
+.event-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.event-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+/* Image zoom effect */
+.event-card img {
+  transition: transform 0.4s ease;
+}
+
+.event-card:hover img {
+  transform: scale(1.08);
+}
+
+/* Button hover glow */
+.event-card .btn {
+  transition: all 0.3s ease;
+}
+
+.event-card:hover .btn {
+  background-color: #e91e63;
+  border-color: #e91e63;
+}
+
+/* Sold out style */
+.sold-out {
+  opacity: 0.7;
+  filter: grayscale(40%);
+}
+.event-card {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #fffafa 100%
+  );
+}
