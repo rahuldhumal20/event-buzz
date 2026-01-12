@@ -32,12 +32,18 @@ export default function MyBookings() {
     fetchBookings();
   };
 
-  const downloadHandler = async (id) => {
+const downloadHandler = async (id) => {
   const token = localStorage.getItem("token");
 
+  if (!token) {
+    alert("You are not logged in");
+    return;
+  }
+
   const response = await fetch(
-    `http://localhost:5000/api/bookings/download/${id}`,
+    `${import.meta.env.VITE_API_URL}/bookings/download/${id}`,
     {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -56,7 +62,9 @@ export default function MyBookings() {
   const a = document.createElement("a");
   a.href = url;
   a.download = `ticket-${id}.pdf`;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 
   window.URL.revokeObjectURL(url);
 };
