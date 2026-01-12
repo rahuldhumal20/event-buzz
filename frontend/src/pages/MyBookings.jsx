@@ -43,7 +43,6 @@ const downloadHandler = async (id) => {
   const response = await fetch(
     `${import.meta.env.VITE_API_URL}/bookings/download/${id}`,
     {
-      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -59,15 +58,15 @@ const downloadHandler = async (id) => {
   const blob = await response.blob();
   const url = window.URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `ticket-${id}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // ✅ MOBILE SAFE
+  window.open(url, "_blank");
 
-  window.URL.revokeObjectURL(url);
+  // cleanup (delay needed for mobile)
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+  }, 5000);
 };
+
 
 
   // 🕒 Date formatter
