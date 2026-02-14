@@ -27,6 +27,11 @@ const bookingSchema = new mongoose.Schema({
   type: String,
   required: true
   },
+  attendeeMobile: {
+  type: String,
+  default: ""
+ },
+
 
   bookedBy: {
     type: mongoose.Schema.Types.ObjectId,

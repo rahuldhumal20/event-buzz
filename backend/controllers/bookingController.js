@@ -7,7 +7,10 @@ const User = require("../models/User");
 
 /* ================= BOOK TICKET ================= */
 exports.bookTicket = async (req, res) => {
-  const { eventId, quantity, attendeeName } = req.body;
+
+  console.log("REQ BODY:", req.body);
+  
+  const { eventId, quantity, attendeeName, attendeeMobile } = req.body;
 
   const event = await Event.findById(eventId);
   if (!event || event.isDeleted) {
@@ -30,18 +33,23 @@ exports.bookTicket = async (req, res) => {
     userId: req.user,
     bookedBy: req.user,
     attendeeName: nameToUse,
+    attendeeMobile: attendeeMobile || "",
     eventId,
     quantity,
     totalAmount: quantity * event.price,
-    status: "CONFIRMED",     // 🔥 CRITICAL
-    isUsed: false            // 🔥 CRITICAL
+    status: "CONFIRMED",
+    isUsed: false
   });
+
 
   event.availableTickets -= quantity;
   await event.save();
 
   res.status(201).json(booking);
 };
+
+
+
 
 /* ================= MY BOOKINGS ================= */
 exports.getMyBookings = async (req, res) => {
@@ -149,8 +157,13 @@ exports.downloadTicket = async (req, res) => {
   doc.text(`Amount Paid: INR ${booking.totalAmount}`, leftX, y);
 
   y += 30;
-  doc.fontSize(14).text("Attendee Details", leftX, y); y += 20;
+  doc.fontSize(14).text("Attendee Details", leftX, y);
+  y += 20;
   doc.fontSize(12).text(`Attendee Name: ${booking.attendeeName}`, leftX, y);
+  y += 18;
+  doc.text(`Mobile: ${booking.attendeeMobile || "N/A"}`, leftX, y);
+  y += 18;
+  doc.text(`Tickets: ${booking.quantity}`, leftX, y);
   y += 18;
   doc.text(`Email: ${booking.userId.email}`, leftX, y);
   y += 18;

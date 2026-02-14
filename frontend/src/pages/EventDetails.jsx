@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link , useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { Form } from "react-bootstrap";
 import { isAdmin } from "../services/auth";
@@ -18,41 +18,85 @@ import "../styles/animations.css";
 
 export default function EventDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [attendeeName, setAttendeeName] = useState("");
+  const [attendeeMobile, setAttendeeMobile] = useState("");
   const [qty, setQty] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const bookHandler = async () => {
-    if (qty < 1) {
-      setError("Quantity must be at least 1");
-      return;
-    }
+  if (qty > event.availableTickets) {
+    setError("Not enough tickets available");
+    return;
+  }
 
-    if (isAdmin() && attendeeName.trim() === "") {
+  if (isAdmin()) {
+    if (attendeeName.trim() === "") {
       setError("Attendee name is required for admin booking");
       return;
     }
-
-    try {
-      await API.post("/bookings/book", {
-        eventId: event._id,
-        quantity: qty,
-        attendeeName: isAdmin() ? attendeeName : undefined
-      });
-
-      alert(
-        isAdmin()
-          ? `Ticket booked successfully for ${attendeeName}`
-          : "Ticket booked successfully!"
-      );
-
-      navigate("/my-bookings");
-    } catch (err) {
-      setError(err.response?.data?.message || "Booking failed");
+    if (attendeeMobile.trim() === "") {
+      setError("Mobile number is required for admin booking");
+      return;
     }
-  };
+  }
+
+  try {
+    const res = await API.post("/bookings/book", {
+      eventId: event._id,
+      quantity: qty,
+      attendeeName:attendeeName ,
+      attendeeMobile: attendeeMobile
+    });
+
+    const bookingId = res.data._id;
+
+    alert(
+      isAdmin()
+        ? `Ticket booked successfully for ${attendeeName}`
+        : "Ticket booked successfully!"
+    );
+
+    // 🔥 AUTO DOWNLOAD TICKET
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/bookings/download/${bookingId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      alert("Booking successful but ticket download failed.");
+      navigate("/my-bookings");
+      return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ticket-${bookingId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+      navigate("/my-bookings");
+    }, 1000);
+
+  } catch (err) {
+    setError(err.response?.data?.message || "Booking failed");
+  }
+};
 
 
 
@@ -102,15 +146,38 @@ export default function EventDetails() {
               🎟 Remaining: {event.availableTickets}
             </Badge>
             {isAdmin() && (
-              <Form.Group className="mb-3">
-                <Form.Label>Attendee Name</Form.Label>
-                <Form.Control
-                  placeholder="Enter ticket holder name"
-                  value={attendeeName}
-                  onChange={(e) => setAttendeeName(e.target.value)}
-                  required
-                />
-              </Form.Group>
+              <>
+                <Form.Group className="mb-3">
+                  <Form.Label>Attendee Name</Form.Label>
+                  <Form.Control
+                    placeholder="Enter ticket holder name"
+                    value={attendeeName}
+                    onChange={(e) => setAttendeeName(e.target.value)}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Mobile Number</Form.Label>
+                  <Form.Control
+                    placeholder="Enter mobile number"
+                    value={attendeeMobile}
+                    onChange={(e) => setAttendeeMobile(e.target.value)}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Number of Tickets</Form.Label>
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    max={event.availableTickets}
+                    value={qty}
+                    onChange={(e) => setQty(Number(e.target.value))}
+                    required
+                  />
+                </Form.Group>              
+              </>
             )}
 
               {event.availableTickets === 0 ? (
