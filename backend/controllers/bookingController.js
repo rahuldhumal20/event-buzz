@@ -3,6 +3,9 @@ const Event = require("../models/Event");
 const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
 const User = require("../models/User");
+const path = require("path");
+const fs = require("fs");
+
 
 
 /* ================= BOOK TICKET ================= */
@@ -139,6 +142,22 @@ exports.downloadTicket = async (req, res) => {
     );
 
     doc.pipe(res);
+    /* ===== BACKGROUND IMAGE ===== */
+    const bgPath = path.join(__dirname, "../public/images/holi-bg.jpg");
+
+    if (fs.existsSync(bgPath)) {
+      doc.image(bgPath, 0, 0, {
+        width: doc.page.width,
+        height: doc.page.height,
+      });
+
+      // Optional light overlay for readability
+      doc.rect(0, 0, doc.page.width, doc.page.height)
+        .fillOpacity(0.85)
+        .fill("#ffffff")
+        .fillOpacity(1);
+    }
+
 
     /* HEADER */
     doc.rect(0, 0, doc.page.width, 90).fill("#e91e63");
