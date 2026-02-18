@@ -98,17 +98,123 @@ exports.downloadTicket = async (req, res) => {
       .populate("eventId")
       .populate("userId", "name email");
 
-    console.log("BOOKING:", booking);
-
-    if (!booking) {
+    if (!booking)
       return res.status(404).json({ message: "Booking not found" });
-    }
 
-    return res.json({ message: "Download route working", booking });
+    if (booking.userId._id.toString() !== req.user)
+      return res.status(401).json({ message: "Unauthorized" });
+
+    if (booking.status !== "CONFIRMED")
+      return res.status(403).json({
+        message: "Only confirmed tickets can be downloaded",
+      });
+
+    if (booking.isUsed)
+      return res.status(403).json({
+        message: "Used tickets cannot be downloaded",
+      });
+
+    const qrData = JSON.stringify({
+      bookingId: booking._id,
+      event: booking.eventId.eventName,
+      attendee: booking.attendeeName,
+    });
+
+    const qrImage = await QRCode.toDataURL(qrData);
+
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+
+    // 🔥 IMPORTANT: Attach error listener
+    doc.on("error", (err) => {
+      console.error("PDFKit Error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: "PDF generation failed" });
+      }
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=EventBuzz-Ticket-${booking._id}.pdf`
+    );
+
+    doc.pipe(res);
+
+    /* HEADER */
+    doc.rect(0, 0, doc.page.width, 90).fill("#e91e63");
+    doc.fillColor("white").fontSize(28).text("EVENT BUZZ", 50, 30);
+    doc.fontSize(14).text("ENTRY PASS", doc.page.width - 150, 40);
+    doc.moveDown(3);
+    doc.fillColor("black");
+
+    /* TICKET BOX */
+    doc.roundedRect(40, 120, doc.page.width - 80, 300, 10).stroke("#cccccc");
+
+    let y = 150;
+    const leftX = 60;
+
+    doc.fontSize(20).text(booking.eventId.eventName, leftX, y);
+    y += 30;
+
+    doc.fontSize(12).text(`Venue: ${booking.eventId.venue}`, leftX, y);
+    y += 20;
+
+    doc.text(`Date: ${booking.eventId.date}`, leftX, y);
+    y += 20;
+
+    doc.text(`Tickets: ${booking.quantity}`, leftX, y);
+    y += 20;
+
+    doc.text(`Amount Paid: INR ${booking.totalAmount}`, leftX, y);
+
+    y += 30;
+
+    doc.fontSize(14).text("Attendee Details", leftX, y);
+    y += 20;
+
+    doc.fontSize(12).text(`Attendee Name: ${booking.attendeeName}`, leftX, y);
+    y += 18;
+
+    doc.text(`Mobile: ${booking.attendeeMobile || "N/A"}`, leftX, y);
+    y += 18;
+
+    doc.text(`Email: ${booking.userId.email}`, leftX, y);
+    y += 18;
+
+    doc.text("Booking ID:", leftX, y);
+    doc.font("Helvetica-Bold").text(
+      booking._id.toString(),
+      leftX,
+      y + 15,
+      { width: 250 }
+    );
+    doc.font("Helvetica");
+
+    // 🔥 QR fix: convert base64 properly
+    const base64Data = qrImage.replace(/^data:image\/png;base64,/, "");
+    const qrBuffer = Buffer.from(base64Data, "base64");
+
+    doc.image(qrBuffer, doc.page.width - 220, 170, { width: 140 });
+
+    doc.fontSize(10).text(
+      "Scan this QR at entry",
+      doc.page.width - 220,
+      320,
+      { width: 140, align: "center" }
+    );
+
+    doc.fontSize(10).text(
+      "Valid only for this event • Powered by Event Buzz",
+      0,
+      460,
+      { align: "center" }
+    );
+
+    doc.end();
 
   } catch (error) {
-    console.log("DOWNLOAD ERROR:", error);
-    return res.status(500).json({ message: "Server crashed" });
+    console.error("DOWNLOAD ERROR:", error);
+    res.status(500).json({ message: "Server error while generating ticket" });
   }
 };
 
