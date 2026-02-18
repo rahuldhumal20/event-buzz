@@ -134,10 +134,20 @@ exports.downloadTicket = async (req, res) => {
     );
 
     doc.pipe(res);
+    /* ===== BACKGROUND IMAGE (SAFE VERSION) ===== */
+    const bgPath = path.join(__dirname, "../public/images/holi-bg.jpg");
+
+    if (fs.existsSync(bgPath)) {
+      doc.image(bgPath, 0, 0, {
+        fit: [doc.page.width, doc.page.height],
+        align: "center",
+        valign: "center"
+      });
+    }
 
     /* ===== TOP COLOR SPLASH STYLE HEADER ===== */
 
-    doc.rect(0, 0, doc.page.width, 250).fill("#e69f1a");
+    doc.rect(0, 0, doc.page.width, 250).fill("#e62b1a");
     doc.circle(100, 100, 120).fill("#ffd166");
     doc.circle(400, 80, 150).fill("#06d6a0");
     doc.circle(300, 180, 100).fill("#118ab2");
