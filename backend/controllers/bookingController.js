@@ -3,6 +3,7 @@ const Event = require("../models/Event");
 const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
 const User = require("../models/User");
+const path = require("path");
 
 
 
@@ -92,8 +93,11 @@ exports.cancelBooking = async (req, res) => {
   res.json({ message: "Booking cancelled successfully" });
 };
 
+/* ================= Download Ticket ================= */
 exports.downloadTicket = async (req, res) => {
   try {
+    const path = require("path");
+
     const booking = await Booking.findById(req.params.id)
       .populate("eventId")
       .populate("userId", "name email");
@@ -110,6 +114,8 @@ exports.downloadTicket = async (req, res) => {
     if (booking.isUsed)
       return res.status(403).json({ message: "Ticket already used" });
 
+    /* ================= QR GENERATION ================= */
+
     const qrData = JSON.stringify({
       bookingId: booking._id,
       event: booking.eventId.eventName,
@@ -122,6 +128,8 @@ exports.downloadTicket = async (req, res) => {
       "base64"
     );
 
+    /* ================= PDF SETUP ================= */
+
     const doc = new PDFDocument({ size: "A4", margin: 0 });
 
     res.setHeader("Content-Type", "application/pdf");
@@ -132,115 +140,70 @@ exports.downloadTicket = async (req, res) => {
 
     doc.pipe(res);
 
-    /* ===== TOP COLOR SPLASH STYLE HEADER ===== */
+    /* ================= BACKGROUND IMAGE ================= */
 
-    doc.rect(0, 0, doc.page.width, 250).fill("#ff4d6d");
-    doc.circle(100, 100, 120).fill("#ffd166");
-    doc.circle(400, 80, 150).fill("#06d6a0");
-    doc.circle(300, 180, 100).fill("#118ab2");
+    const bgPath = path.join(__dirname, "../public/ticket-bg.jpg");
 
-    doc.fillColor("white")
-      .fontSize(36)
-      .font("Helvetica-Bold")
-      .text(booking.eventId.eventName.toUpperCase(), 0, 100, {
-        align: "center",
-      });
-
-    doc.fontSize(18)
-      .font("Helvetica")
-      .text("ENTRY PASS", 0, 150, { align: "center" });
-
-    /* ===== DATE BLOCK ===== */
-
-    doc.roundedRect(doc.page.width - 180, 270, 150, 80, 10)
-      .fill("#111");
-
-    doc.fillColor("white")
-      .fontSize(14)
-      .text("EVENT DATE", doc.page.width - 180, 280, {
-        width: 150,
-        align: "center",
-      });
-
-    doc.fontSize(18)
-      .font("Helvetica-Bold")
-      .text(booking.eventId.date, doc.page.width - 180, 305, {
-        width: 150,
-        align: "center",
-      });
-
-    /* ===== MAIN TICKET CARD ===== */
-
-    doc.roundedRect(50, 280, doc.page.width - 100, 350, 20)
-      .fill("#ffffff");
-
-    let y = 320;
-    const leftX = 80;
-
-    doc.fillColor("#000")
-      .fontSize(20)
-      .font("Helvetica-Bold")
-      .text("Booking Details", leftX, y);
-
-    y += 40;
-
-    doc.fontSize(13).font("Helvetica");
-
-    doc.text(`Venue: ${booking.eventId.venue}`, leftX, y); y += 25;
-    doc.text(`District: ${booking.eventId.district}`, leftX, y); y += 25;
-    doc.text(`Tickets: ${booking.quantity}`, leftX, y); y += 25;
-    doc.text(`Amount Paid: ₹ ${booking.totalAmount}`, leftX, y);
-
-    y += 40;
-
-    doc.font("Helvetica-Bold").text("Attendee Information", leftX, y);
-    y += 30;
-
-    doc.font("Helvetica");
-    doc.text(`Name: ${booking.attendeeName}`, leftX, y); y += 25;
-    doc.text(`Mobile: ${booking.attendeeMobile || "N/A"}`, leftX, y); y += 25;
-    doc.text(`Email: ${booking.userId.email}`, leftX, y);
-
-    y += 40;
-
-    doc.font("Helvetica-Bold").text("Booking ID:", leftX, y);
-    y += 20;
-
-    doc.font("Helvetica").text(booking._id.toString(), leftX, y);
-
-    /* ===== QR SECTION ===== */
-
-    doc.image(qrBuffer, doc.page.width - 200, 380, {
-      width: 130,
+    doc.image(bgPath, 0, 0, {
+      width: doc.page.width,
+      height: doc.page.height,
     });
 
-    doc.fontSize(10)
-      .fillColor("#333")
-      .text("Scan this QR at entry", doc.page.width - 200, 520, {
-        width: 130,
+    /* ================= CENTER QR ================= */
+
+    const qrSize = 180;
+    const centerX = (doc.page.width - qrSize) / 2;
+    const centerY = (doc.page.height - qrSize) / 2;
+
+    doc.image(qrBuffer, centerX, centerY, {
+      width: qrSize,
+    });
+
+    /* ================= TEXT BELOW QR ================= */
+
+    let textY = centerY + qrSize + 20;
+
+    doc
+      .fillColor("white")
+      .font("Helvetica-Bold")
+      .fontSize(18)
+      .text(booking.attendeeName, 0, textY, { align: "center" });
+
+    textY += 25;
+
+    doc
+      .font("Helvetica")
+      .fontSize(14)
+      .text(`Mobile: ${booking.attendeeMobile || "N/A"}`, 0, textY, {
         align: "center",
       });
 
-    /* ===== FOOTER ===== */
+    textY += 22;
 
-    doc.fontSize(10)
-      .fillColor("#666")
+    doc
+      .fontSize(12)
+      .text(`Booking ID: ${booking._id}`, 0, textY, {
+        align: "center",
+      });
+
+    /* ================= FOOTER ================= */
+
+    doc
+      .fontSize(10)
+      .fillColor("#eeeeee")
       .text(
         "Valid only for this event • Powered by Event Buzz",
         0,
-        800,
+        doc.page.height - 40,
         { align: "center" }
       );
 
     doc.end();
-
   } catch (error) {
     console.error("DOWNLOAD ERROR:", error);
     res.status(500).json({ message: "Ticket generation failed" });
   }
 };
-
-
 
 /* ================= VERIFY QR ================= */
 exports.verifyTicket = async (req, res) => {
