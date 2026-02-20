@@ -100,7 +100,8 @@ exports.downloadTicket = async (req, res) => {
 
     const booking = await Booking.findById(req.params.id)
       .populate("eventId")
-      .populate("userId", "name email");
+      .populate("userId", "name email")
+      .populate("bookedBy", "name role");
 
     if (!booking)
       return res.status(404).json({ message: "Booking not found" });
@@ -164,7 +165,7 @@ exports.downloadTicket = async (req, res) => {
     let textY = centerY + qrSize + 20;
 
     doc
-      .fillColor("white")
+      .fillColor("black")
       .font("Helvetica-Bold")
       .fontSize(18)
       .text(booking.attendeeName, 0, textY, { align: "center" });
@@ -172,6 +173,7 @@ exports.downloadTicket = async (req, res) => {
     textY += 25;
 
     doc
+      .fillColor("black")
       .font("Helvetica")
       .fontSize(14)
       .text(`Mobile: ${booking.attendeeMobile || "N/A"}`, 0, textY, {
@@ -181,22 +183,32 @@ exports.downloadTicket = async (req, res) => {
     textY += 22;
 
     doc
+      .fillColor("black")
       .fontSize(12)
       .text(`Booking ID: ${booking._id}`, 0, textY, {
         align: "center",
       });
 
-    /* ================= FOOTER ================= */
+    textY += 22;
+
+    /* ===== NEW: ADMIN / SELLER NAME ===== */
 
     doc
-      .fontSize(10)
-      .fillColor("#eeeeee")
+      .fillColor("black")
+      .font("Helvetica-Bold")
+      .fontSize(12)
       .text(
-        "Valid only for this event • Powered by Event Buzz",
+        `Issued By: ${
+          booking.bookedBy?.role === "admin"
+            ? booking.bookedBy.name + " (Admin)"
+            : booking.bookedBy?.name || "Event Buzz"
+        }`,
         0,
-        doc.page.height - 40,
+        textY,
         { align: "center" }
       );
+
+    /* ================= FOOTER ================= */
 
     doc.end();
   } catch (error) {
