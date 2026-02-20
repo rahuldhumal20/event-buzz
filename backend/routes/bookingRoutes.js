@@ -7,7 +7,9 @@ const {
   getMyBookings,
   cancelBooking,
   downloadTicket,
-  verifyTicket
+  verifyTicket,
+  getAdminAnalytics,
+  getEventAnalytics
 } = require("../controllers/bookingController");
 
 router.post(
@@ -20,6 +22,8 @@ router.post("/book", protect, bookTicket);
 router.get("/my", protect, getMyBookings);
 router.put("/cancel/:id", protect, cancelBooking);
 router.get("/download/:id", protect, downloadTicket);
+router.get("/admin/analytics",protect, adminOnly, getAdminAnalytics);
+router.get("/admin/event/:id", protect, adminOnly, getEventAnalytics);
 
 
 module.exports = router;

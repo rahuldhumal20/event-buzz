@@ -10,6 +10,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
 import EventDetails from "./pages/EventDetails";
 import AdminScanner from "./pages/AdminScanner";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import EventAnalytics from "./pages/EventAnalytics";
 
 
 
@@ -51,6 +53,8 @@ function App() {
             </AdminRoute>
           }
         />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        <Route path="/admin/event/:id" element={<EventAnalytics />} />
         <Route
           path="/admin/scanner"
           element={

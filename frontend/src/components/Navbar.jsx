@@ -30,6 +30,9 @@ export default function Navigation() {
                   <>
                     <Nav.Link as={Link} to="/admin">Admin</Nav.Link>
                     <Nav.Link as={Link} to="/admin/scanner">Scanner</Nav.Link>
+                    <Nav.Link as={Link} to="/admin/analytics">
+                      Analytics
+                    </Nav.Link>
                   </>
                 )}
 

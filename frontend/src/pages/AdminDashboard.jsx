@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 
 import {
   Container,
@@ -203,18 +203,28 @@ export default function AdminDashboard() {
             <div>
             <b>{e.eventName}</b> – {e.district} – ₹{e.price}
             </div>
+            <div className="d-flex gap-2">
+            <Button
+              as={Link}
+              to={`/admin/event/${e._id}`}
+              size="sm"
+              variant="outline-info"
+            >
+              View Analytics
+            </Button>
 
             <Button
-            variant="outline-danger"
-            size="sm"
-            onClick={async () => {
+              variant="outline-danger"
+              size="sm"
+              onClick={async () => {
                 if (!window.confirm("Delete this event? This will cancel all bookings.")) return;
                 await API.delete(`/events/admin/delete/${e._id}`);
                 fetchEvents();
-            }}
+              }}
             >
-            Delete
+              Delete
             </Button>
+          </div>
         </Card>
         ))}
 

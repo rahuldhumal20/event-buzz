@@ -248,3 +248,82 @@ exports.verifyTicket = async (req, res) => {
     attendee: booking.attendeeName
   });
 };
+/* ================= ADMIN GLOBAL ANALYTICS ================= */
+exports.getAdminAnalytics = async (req, res) => {
+  try {
+    const totalRevenue = await Booking.aggregate([
+      { $match: { status: "CONFIRMED" } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+
+    const ticketsSold = await Booking.aggregate([
+      { $match: { status: "CONFIRMED" } },
+      { $group: { _id: null, total: { $sum: "$quantity" } } }
+    ]);
+
+    const cancelledTickets = await Booking.aggregate([
+      { $match: { status: "CANCELLED" } },
+      { $group: { _id: null, total: { $sum: "$quantity" } } }
+    ]);
+
+    const scannedTickets = await Booking.aggregate([
+      { $match: { isUsed: true } },
+      { $group: { _id: null, total: { $sum: "$quantity" } } }
+    ]);
+
+    res.json({
+      totalRevenue: totalRevenue[0]?.total || 0,
+      ticketsSold: ticketsSold[0]?.total || 0,
+      cancelledTickets: cancelledTickets[0]?.total || 0,
+      scannedTickets: scannedTickets[0]?.total || 0
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Analytics failed" });
+  }
+};
+/* ================= EVENT ANALYTICS ================= */
+exports.getEventAnalytics = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const bookings = await Booking.find({ eventId })
+      .populate("userId", "name email")
+      .sort({ bookingDate: -1 });
+
+    const sold = bookings
+      .filter(b => b.status === "CONFIRMED")
+      .reduce((sum, b) => sum + b.quantity, 0);
+
+    const cancelled = bookings
+      .filter(b => b.status === "CANCELLED")
+      .reduce((sum, b) => sum + b.quantity, 0);
+
+    const scanned = bookings
+      .filter(b => b.isUsed)
+      .reduce((sum, b) => sum + b.quantity, 0);
+
+    const remaining = event.totalTickets - sold;
+    const remainingToScan = sold - scanned;
+
+    res.json({
+      eventName: event.eventName,
+      totalTickets: event.totalTickets,
+      sold,
+      cancelled,
+      scanned,
+      remaining,
+      remainingToScan,
+      bookings // 🔥 IMPORTANT — send full list
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Analytics failed" });
+  }
+};
