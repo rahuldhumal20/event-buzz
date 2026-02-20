@@ -213,7 +213,7 @@ export default function AdminDashboard() {
               View Analytics
             </Button>
 
-            <Button
+            {/*<Button
               variant="outline-danger"
               size="sm"
               onClick={async () => {
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
               }}
             >
               Delete
-            </Button>
+            </Button>*/}
           </div>
         </Card>
         ))}
