@@ -12,7 +12,15 @@ exports.bookTicket = async (req, res) => {
 
   console.log("REQ BODY:", req.body);
   
-  const { eventId, quantity, attendeeName, attendeeMobile } = req.body;
+  const {
+    eventId,
+    quantity,
+    attendeeName,
+    attendeeMobile,
+    passType,
+    ticketCategory,
+    price
+  } = req.body;
 
   const event = await Event.findById(eventId);
   if (!event || event.isDeleted) {
@@ -38,7 +46,10 @@ exports.bookTicket = async (req, res) => {
     attendeeMobile: attendeeMobile || "",
     eventId,
     quantity,
-    totalAmount: quantity * event.price,
+    ticketPrice : price ,
+    totalAmount: quantity * price,
+    passType,
+    ticketCategory,
     status: "CONFIRMED",
     isUsed: false
   });
@@ -131,7 +142,9 @@ exports.downloadTicket = async (req, res) => {
 
     /* ================= PDF SETUP ================= */
 
-    const doc = new PDFDocument({ size: "A4", margin: 0 });
+    
+
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -140,69 +153,98 @@ exports.downloadTicket = async (req, res) => {
     );
 
     doc.pipe(res);
-
+   
     /* ================= BACKGROUND IMAGE ================= */
 
-    const bgPath = path.join(__dirname, "../public/ticket-bg.jpg");
+    // choose background based on pass type
+    const bgImage =
+      booking.passType === "VIP"
+        ? path.join(__dirname, "../public/vip-ticket-bg.jpg")
+        : path.join(__dirname, "../public/ticket-bg.jpg");
 
-    doc.image(bgPath, 0, 0, {
+    doc.image(bgImage, 0, 0, {
       width: doc.page.width,
       height: doc.page.height,
     });
 
     /* ================= CENTER QR ================= */
 
-    const qrSize = 180;
-    const centerX = (doc.page.width - qrSize) / 2;
-    const centerY = (doc.page.height - qrSize) / 2;
+    const qrSize = 150;
+    const centerX = (doc.page.width - 170) / 2;
+    const centerY = (doc.page.height - 270) / 2;
 
     doc.image(qrBuffer, centerX, centerY, {
       width: qrSize,
     });
 
-    /* ================= TEXT BELOW QR ================= */
+    /* ===== CALCULATE TOTAL AMOUNT ===== */
 
-    let textY = centerY + qrSize + 20;
+    // price saved per ticket OR fallback to event price
+    const pricePerTicket =
+      booking.ticketPrice || booking.eventId.price || 0;
 
+    const calculatedTotal = booking.quantity * pricePerTicket;
+
+    /* ===== TEXT BELOW QR (FINAL) ===== */
+
+    let textY = centerY + qrSize + 25;
+
+    // Attendee Name
     doc
       .fillColor("black")
       .font("Helvetica-Bold")
-      .fontSize(18)
-      .text(booking.attendeeName, 0, textY, { align: "center" });
+      .fontSize(16)
+      .text(booking.attendeeName, 0, textY, {
+        align: "center"
+      });
 
-    textY += 25;
+    textY += 22;
 
+    // Mobile
     doc
-      .fillColor("black")
       .font("Helvetica")
-      .fontSize(14)
-      .text(`Mobile: ${booking.attendeeMobile || "N/A"}`, 0, textY, {
-        align: "center",
-      });
-
-    textY += 22;
-
-    doc
-      .fillColor("black")
       .fontSize(12)
-      .text(`Booking ID: ${booking._id}`, 0, textY, {
-        align: "center",
+      .text(`Mobile: ${booking.attendeeMobile || "-"}`, 0, textY, {
+        align: "center"
       });
 
-    textY += 22;
+    textY += 18;
 
-    /* ===== NEW: ADMIN / SELLER NAME ===== */
+    // Ticket Type
+    doc.text(`Ticket Type: ${booking.ticketCategory || "General"}`, 0, textY, {
+      align: "center"
+    });
 
+    textY += 18;
+
+    // Number of Tickets
+    doc.text(`Number of Tickets: ${booking.quantity}`, 0, textY, {
+      align: "center"
+    });
+
+    textY += 18;
+
+    // Pass Type
+    doc.text(`Pass Type: ${booking.passType || "General"}`, 0, textY, {
+      align: "center"
+    });
+
+    textY += 18;
+
+    // ⭐ TOTAL AMOUNT (NEW)
     doc
-      .fillColor("black")
       .font("Helvetica-Bold")
-      .fontSize(12)
+      .text(`Total Amount: ₹${calculatedTotal}`, 0, textY, {
+        align: "center"
+      });
+
+    textY += 20;
+
+    // Issued By
+    doc
+      .font("Helvetica")
       .text(
-        `Issued By: ${
-          booking.bookedBy?.role === "admin"
-            ? booking.bookedBy.name + " (Admin)"
-            : booking.bookedBy?.name || "Event Buzz"
-        }`,
+        `Issued By: ${booking.bookedBy?.name || "Admin"}`,
         0,
         textY,
         { align: "center" }

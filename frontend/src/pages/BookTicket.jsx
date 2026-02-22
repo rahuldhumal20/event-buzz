@@ -33,8 +33,13 @@ export default function BookTicket() {
 
     try {
       await API.post("/bookings/book", {
-        eventId: id,
-        quantity: qty
+        eventId: event._id,
+        quantity: qty,
+        attendeeName,
+        attendeeMobile,
+        passType,
+        ticketCategory,
+        price
       });
 
       setSuccess("Booking successful! Redirecting...");

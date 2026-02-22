@@ -25,6 +25,10 @@ export default function EventDetails() {
   const [qty, setQty] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [passType, setPassType] = useState("GENERAL");
+  const [ticketCategory, setTicketCategory] = useState("");
+  const [price, setPrice] = useState("");
+
 
   const bookHandler = async () => {
   if (qty > event.availableTickets) {
@@ -48,7 +52,10 @@ export default function EventDetails() {
       eventId: event._id,
       quantity: qty,
       attendeeName:attendeeName ,
-      attendeeMobile: attendeeMobile
+      attendeeMobile: attendeeMobile,
+      passType,
+      ticketCategory,
+      price
     });
 
     const bookingId = res.data._id;
@@ -132,7 +139,9 @@ export default function EventDetails() {
             📅 {event.date}
           </p>
 
-          <p>{event.description}</p>
+          <p style={{ whiteSpace: "pre-line" }}>
+            {event.description}
+          </p>
         </Col>
 
         <Col md={4}>
@@ -167,6 +176,34 @@ export default function EventDetails() {
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
+                  <Form.Label>Pass Type</Form.Label>
+                  <Form.Select
+                    value={passType}
+                    onChange={(e) => setPassType(e.target.value)}
+                  >
+                    <option value="GENERAL">General</option>
+                    <option value="VIP">VIP</option>
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Ticket Category</Form.Label>
+                  <Form.Select
+                    value={ticketCategory}
+                    onChange={(e) => setTicketCategory(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    <option value="Kids - ₹99">Kids - ₹99</option>
+                    <option value="Stag - ₹399">Stag - ₹399</option>
+                    <option value="Couple - ₹699">Couple - ₹699</option>
+                    <option value="Group 5 - ₹1799">Group 5 - ₹1799</option>
+                    <option value="VIP Stag - ₹999">VIP Stag - ₹999</option>
+                    <option value="VIP Couple - ₹1799">VIP Couple - ₹1799</option>
+                    <option value="VIP Group 5 - ₹4499">VIP Group 5 - ₹4499</option>
+                    <option value="VIP Group 10 - ₹8499">VIP Group 10 - ₹8499</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
                   <Form.Label>Number of Tickets</Form.Label>
                   <Form.Control
                     type="number"
@@ -176,7 +213,16 @@ export default function EventDetails() {
                     onChange={(e) => setQty(Number(e.target.value))}
                     required
                   />
-                </Form.Group>              
+                </Form.Group>  
+                <Form.Group className="mb-3">
+                  <Form.Label>Price</Form.Label>
+                  <Form.Control
+                    type="number"
+                    placeholder="Enter price"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                </Form.Group>            
               </>
             )}
 

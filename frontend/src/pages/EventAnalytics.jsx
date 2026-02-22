@@ -32,7 +32,7 @@ export default function EventAnalytics() {
           <Card body>Cancelled: {data.cancelled}</Card>
         </Col>
         <Col md={4}>
-          <Card body>Scanned: {data.scannedTickets}</Card>
+          <Card body>Scanned: {data.scanned}</Card>
         </Col>
         <Col md={4}>
           <Card body>Remaining to Scan: {data.remainingToScan}</Card>

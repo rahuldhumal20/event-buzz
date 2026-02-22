@@ -30,7 +30,21 @@ const bookingSchema = new mongoose.Schema({
   attendeeMobile: {
   type: String,
   default: ""
- },
+  },
+  passType: {
+    type: String,
+    enum: ["GENERAL", "VIP"],
+    default: "GENERAL"
+  },
+
+  ticketCategory: {
+    type: String,
+    default: ""
+  },
+  ticketPrice: {
+  type: Number,
+  required: true
+},
 
 
   bookedBy: {

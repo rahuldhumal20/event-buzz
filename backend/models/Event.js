@@ -13,7 +13,7 @@ const eventSchema = new mongoose.Schema({
   // 🆕 Event Image
   image: {
     type: String,
-    required: true
+    default : ""
   },
   isDeleted: {
   type: Boolean,
