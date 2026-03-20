@@ -67,26 +67,25 @@ Subsequent requests will perform normally once the server is active.
 event-buzz/
 │
 ├── backend/
-│ ├── controllers/
-│ ├── models/
-│ ├── routes/
-│ ├── middleware/
-│ ├── server.js
-│ └── .env (ignored)
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── server.js
+│   └── .env (ignored)
 │
 ├── frontend/
-│ ├── src/
-│ │ ├── pages/
-│ │ ├── components/
-│ │ ├── services/
-│ │ └── styles/
-│ ├── .env
-│ └── vite.config.js
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── services/
+│   │   └── styles/
+│   ├── .env
+│   └── vite.config.js
 │
 ├── README.md
 ├── requirements.txt
 └── .gitignore
-
 
 ## ⚙️ Environment Variables
 
