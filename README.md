@@ -10,6 +10,10 @@ It supports online ticket booking, admin-managed events, offline bookings, QR-ba
 🚀 **Live Website:**  
 👉 https://eventsbuzz.netlify.app/
 
+The backend is deployed on a free-tier hosting service. 
+As a result, the server may enter a sleep state during inactivity and can take a few seconds to respond on the first request.
+
+Subsequent requests will perform normally once the server is active.
 ---
 
 ## 🚀 Features
@@ -153,4 +157,4 @@ M.Sc. Computer Applications
 
 ---
 
-> “Event Buzz is a production-ready ticket booking platform with real-world features and cloud deployme
+> “Event Buzz is a production-ready ticket booking platform with real-world features and cloud deployment
