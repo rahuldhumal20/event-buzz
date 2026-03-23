@@ -173,7 +173,6 @@ npm run dev
 ## 👨‍💻 Author
 
 **Rahul Dhumal**
-M.Sc. Computer Applications
 
 ---
 
